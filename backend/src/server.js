@@ -15,23 +15,13 @@ const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
 // middleware
-const allowedOrigins = [
-  "http://localhost:5173", // development frontend
-];
-
-// Add production frontend URL if provided in environment variables
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
+if (process.env.NODE_ENV !== "production") {
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+    })
+  );
 }
-
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
 app.use(express.json()); // this middleware will parse JSON bodies: req.body
 app.use(rateLimiter);
 
