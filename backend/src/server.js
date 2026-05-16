@@ -15,13 +15,19 @@ const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
 // middleware
-if (process.env.NODE_ENV !== "production") {
+
   app.use(
-    cors({
-      origin: "http://localhost:5173",
-    })
-  );
-}
+  cors({
+    origin: [
+      "https://mern-fullstack-seven.vercel.app", // 1. الرابط الحقيقي للموقع وليس لوحة التحكم
+      "http://localhost:5173"                    // 2. رابط التطوير المحلي (Vite) لتستطيع العمل على جهازك
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  })
+);
+
 app.use(express.json()); // this middleware will parse JSON bodies: req.body
 app.use(rateLimiter);
 
