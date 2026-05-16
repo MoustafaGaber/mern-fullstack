@@ -18,10 +18,7 @@ const __dirname = path.resolve();
 
   app.use(
   cors({
-    origin: [
-      "https://mern-fullstack-seven.vercel.app", // 1. الرابط الحقيقي للموقع وليس لوحة التحكم
-      "http://localhost:5173"                    // 2. رابط التطوير المحلي (Vite) لتستطيع العمل على جهازك
-    ],
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
