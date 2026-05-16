@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "../components/Navbar"
 import RateLimitedUI from "../components/RateLimitedUI"
 import { useEffect } from "react";
-import axios from "axios";
+import api from "../lib/axios";
 import toast from "react-hot-toast";
 import ArticleCard from "../components/ArticleCard";
 import ArticlesNotFound from "../components/ArticlesNotFound";
@@ -15,7 +15,7 @@ const HomePage = () => {
   useEffect(()=>{
     const fetchArticles=async()=>{
       try {
-           const res=await axios.get("http://localhost:5001/api/articles");
+           const res=await api.get("/articles");
             console.log(res.data);
             setArticles(res.data);
             setIsRateLimited(false);
