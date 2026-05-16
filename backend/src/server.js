@@ -3,10 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { connectDB } from "./config/db.js";
-
- import articlesRoutes from "../src/routers/articlesRouters.js";
-
- import rateLimiter from "./middleware/rateLimiter.js";
+import articlesRoutes from "../src/routers/articlesRouters.js";
+import rateLimiter from "./middleware/rateLimiter.js";
 
 dotenv.config();
 
@@ -14,38 +12,37 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 
-// middleware
-
-  app.use(
+// 1. إعداد الـ CORS بشكل ديناميكي ومرن 100% لمشروع التخرج
+app.use(
   cors({
-    origin: true,
+    origin: true, // يقبل تلقائياً أي رابط يرسل الطلب سواء لوكال أو روابط فيرسيل المتغيرة
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
-app.use(express.json()); // this middleware will parse JSON bodies: req.body
+app.use(express.json()); 
 app.use(rateLimiter);
 
-// our simple custom middleware
-// app.use((req, res, next) => {
-//   console.log(`Req method is ${req.method} & Req URL is ${req.url}`);
-//   next();
-// });
+// 2. مسارات الـ API الأساسية
+app.use("/api/articles", articlesRoutes);
 
-app.use("/api/articles",articlesRoutes);
+// 3. مسار احتياطي للـ API للتأكد من عمل الباك إيند أونلاين
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "Server is running smoothly!" });
+});
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// ملاحظة: تم إزالة شرط الـ production الخاص بـ express.static 
+// لأن ملف vercel.json الخارجي هو المسؤول عن توجيه ملفات الـ dist للفرونت إيند.
 
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-  });
-}
-
+// 4. تشغيل الاتصال بقاعدة البيانات والسيرفر
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log("Server started on PORT:", PORT);
   });
+}).catch((err) => {
+  console.error("Database connection failed:", err);
 });
+
+export default app; // تصدير التطبيق لـ Vercel
