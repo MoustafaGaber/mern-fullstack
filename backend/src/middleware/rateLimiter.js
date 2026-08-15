@@ -2,7 +2,10 @@ import ratelimit from "../config/upstash.js";
 
 const rateLimiter = async (req, res, next) => {
   try {
-    const { success } = await ratelimit.limit("my-rate-limit");
+    if (req.path === "/api/health") return next();
+
+    const key = req.ip || "anonymous";
+    const { success } = await ratelimit.limit(key);
 
     if (!success) {
       return res.status(429).json({
@@ -10,10 +13,10 @@ const rateLimiter = async (req, res, next) => {
       });
     }
 
-    next();
+    return next();
   } catch (error) {
-    console.log("Rate limit error", error);
-    next(error);
+    console.warn("Rate limit unavailable, continuing without it:", error.message || error);
+    return next();
   }
 };
 

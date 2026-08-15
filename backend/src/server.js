@@ -22,16 +22,17 @@ app.use(
   })
 );
 
-app.use(express.json()); 
-app.use(rateLimiter);
-
-// 2. مسارات الـ API الأساسية
-app.use("/api/articles", articlesRoutes);
+app.use(express.json());
 
 // 3. مسار احتياطي للـ API للتأكد من عمل الباك إيند أونلاين
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "Server is running smoothly!" });
 });
+
+app.use(rateLimiter);
+
+// 2. مسارات الـ API الأساسية
+app.use("/api/articles", articlesRoutes);
 
 // ملاحظة: تم إزالة شرط الـ production الخاص بـ express.static 
 // لأن ملف vercel.json الخارجي هو المسؤول عن توجيه ملفات الـ dist للفرونت إيند.

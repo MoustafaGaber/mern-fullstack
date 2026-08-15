@@ -5,10 +5,55 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// create a ratelimiter that allows 100 requests per minute
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, "60 s"),
-});
+const fallbackRateLimit = {
+  async limit() {
+    return {
+      success: true,
+      limit: 100,
+      remaining: 100,
+      reset: 0,
+    };
+  },
+};
 
-export default ratelimit;
+const createRateLimiter = () => {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return fallbackRateLimit;
+  }
+
+  try {
+    const redis = new Redis({
+      url,
+      token,
+    });
+
+    return new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(100, "60 s"),
+    });
+  } catch (error) {
+    console.warn("Upstash config invalid, using fallback rate limiter:", error.message || error);
+    return fallbackRateLimit;
+  }
+};
+
+const ratelimit = createRateLimiter();
+
+export default {
+  async limit(key) {
+    try {
+      return await ratelimit.limit(key);
+    } catch (error) {
+      console.warn("Upstash request failed, using fallback rate limiter:", error.message || error);
+      return {
+        success: true,
+        limit: 100,
+        remaining: 100,
+        reset: 0,
+      };
+    }
+  },
+};
